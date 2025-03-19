@@ -1,0 +1,220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+    <title>
+        <%= globals.app_name %> Reference Code For API</title>
+    <style type="text/css">
+        /*General styles*/
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: white no-repeat left top;
+        }
+        
+        #main {
+            /*width: -moz-min-content;*/
+            margin: 10px;
+            background: white;
+            -moz-border-radius: 8px;
+            -webkit-border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #adaa9f;
+            -moz-box-shadow: 0 2px 2px #9c9c9c;
+            -webkit-box-shadow: 0 2px 2px #9c9c9c;
+        }
+        /*Features table------------------------------------------------------------*/
+        
+        .features-table {
+            width: 100%;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-shadow: 0 1px 0 #fff;
+            color: #2a2a2a;
+            background: #fafafa;
+            background-image: -moz-linear-gradient(top, #fff, #eaeaea, #fff);
+            /* Firefox 3.6 */
+            background-image: -webkit-gradient(linear, center bottom, center top, from(#fff), color-stop(0.5, #eaeaea), to(#fff));
+        }
+        
+        .features-table td {
+            height: 50px;
+            line-height: 50px;
+            padding: 0 20px;
+            border-bottom: 1px solid #cdcdcd;
+            box-shadow: 0 1px 0 white;
+            -moz-box-shadow: 0 1px 0 white;
+            -webkit-box-shadow: 0 1px 0 white;
+            white-space: nowrap;
+            text-align: center;
+        }
+        /*Body*/
+        
+        .features-table tbody td {
+            text-align: center;
+            font: normal 12px Verdana, Arial, Helvetica;
+            width: auto;
+        }
+        
+        .features-table tbody td:first-child {
+            width: auto;
+            text-align: left;
+        }
+        
+        .features-table td:nth-child(3),
+        .features-table td:nth-child(5) {
+            background: #efefef;
+            background: rgba(144, 144, 144, 0.15);
+            border-right: 1px solid white;
+        }
+        
+        .features-table td:nth-child(4),
+        .features-table td:nth-child(8),
+        .features-table td:nth-child(6),
+        .features-table td:nth-child(1) {
+            background: #e7f3d4;
+            background: rgba(184, 243, 85, 0.3);
+        }
+        /*Header*/
+        
+        .features-table thead td {
+            font: bold 1.3em 'trebuchet MS', 'Lucida Sans', Arial;
+            -moz-border-radius-topright: 10px;
+            -moz-border-radius-topleft: 10px;
+            border-top-right-radius: 10px;
+            border-top-left-radius: 10px;
+            border-top: 1px solid #eaeaea;
+        }
+        
+        .features-table thead td:first-child {
+            border-top: none;
+        }
+        /*Footer*/
+        
+        .features-table tfoot td {
+            font: bold 1.4em Georgia;
+            -moz-border-radius-bottomright: 10px;
+            -moz-border-radius-bottomleft: 10px;
+            border-bottom-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+            border-bottom: 1px solid #dadada;
+        }
+        
+        .features-table tfoot td:first-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <strong style="font-size:24px;">
+						<CENTER><%= globals.app_name %> </CENTER></strong>
+        <br>
+        <br>
+
+        <table class="features-table">
+            <thead>
+                <tr>
+                    <td>No</td>
+                    <td>CODE</td>
+                    <td>Message</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="3" align="center" style="text-align:center;">HTTP CODE 200</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>Invalid Request / Failer Request </td>
+                </tr>
+
+                <tr>
+                    <td>2</td>
+                    <td>1</td>
+                    <td>Success Response</td>
+                </tr>
+
+                <tr>
+                    <td>3</td>
+                    <td>2</td>
+                    <td>No Data Found</td>
+                </tr>
+
+                <tr>
+                    <td>4</td>
+                    <td>3</td>
+                    <td>Account Inactive(block)</td>
+                </tr>
+
+                <tr>
+                    <td>5</td>
+                    <td>4</td>
+                    <td>OTP verification</td>
+                </tr>
+
+                <tr>
+                    <td>6</td>
+                    <td>5</td>
+                    <td>Email Verification</td>
+                </tr>
+
+                <tr>
+                    <td>7</td>
+                    <td>6</td>
+                    <td>Force Update App</td>
+                </tr>
+
+                <tr>
+                    <td>8</td>
+                    <td>7</td>
+                    <td>Simaple update App alert</td>
+                </tr>
+                <tr>
+                    <td>9</td>
+                    <td>11</td>
+                    <td>Invalid social id</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>12</td>
+                    <td>User Not Register/td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="center" style="text-align:left;">
+                        <br/><br/>Response : {"code":"1","message":"Enter Message","data":""} <br/><br/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="center" style="text-align:center;">HTTP CODE 401</td>
+                </tr>
+
+                <tr>
+                    <td>1</td>
+                    <td>-1(optional)</td>
+                    <td>User Session (Token) Expire</td>
+                </tr>
+
+                <tr>
+                    <td colspan="3" align="center" style="text-align:center;">Note : {"code":"-1","message":"Enter Message"}</td>
+                </tr>
+
+                <tr>
+                    <td colspan="3" align="center" style="text-align:left;">
+                        <br/><br/>Note : <br/><br/>
+                        <span style="color:red"> 1.) Create a customer code starting with 11</span> <br/><br/>
+                        <span style="color:red"> 2.) Header Parameter : API-KEY , Accept-Language , TOKEN (Header paramenter always captital pass)</span><br/><br/>
+                        <span style="color:red"> 3.)Response in a particular filed passed (Depend on Project requirement)</span><br/><br/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

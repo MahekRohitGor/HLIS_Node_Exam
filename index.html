@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Edsoma Encryption</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #fff;
+            color: #4F5155;
+        }
+        #container {
+            margin: 10px;
+            padding: 20px;
+            border: 1px solid #D0D0D0;
+            box-shadow: 0 0 8px #D0D0D0;
+        }
+        textarea {
+            width: 90%;
+            height: 100px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Encryption & Decryption (Client-Side)</h1>
+        <label><b>Enter Text</b></label><br>
+        <textarea id="data"></textarea><br><br>
+        
+        <label><b>Type</b></label>
+        <input type="radio" name="type" value="encrypt" checked> Encrypt
+        <input type="radio" name="type" value="decrypt"> Decrypt <br><br>
+        
+        <button onclick="process()">Submit</button>
+        
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        const secretKey = CryptoJS.SHA256("xza548sa3vcr641b5ng5nhy9mlo64r6k").toString();
+        const iv = "5ng5nhy9mlo64r6k".substring(0, 16); // Ensure 16-byte IV
+
+        function process() {
+            let text = document.getElementById("data").value;
+            let type = document.querySelector('input[name="type"]:checked').value;
+            let outputDiv = document.getElementById("output");
+            
+            if (text.trim() === "") {
+                outputDiv.innerHTML = "<p style='color:red;'>Please enter text.</p>";
+                return;
+            }
+
+            if (type === "encrypt") {
+                let encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(secretKey), {
+                    iv: CryptoJS.enc.Utf8.parse(iv),
+                    padding: CryptoJS.pad.Pkcs7,
+                    mode: CryptoJS.mode.CBC
+                }).toString();
+                outputDiv.innerHTML = "<p>Encrypted: " + encrypted + "</p>";
+            } else {
+                try {
+                    let decrypted = CryptoJS.AES.decrypt(text, CryptoJS.enc.Utf8.parse(secretKey), {
+                        iv: CryptoJS.enc.Utf8.parse(iv),
+                        padding: CryptoJS.pad.Pkcs7,
+                        mode: CryptoJS.mode.CBC
+                    }).toString(CryptoJS.enc.Utf8);
+                    outputDiv.innerHTML = "<p>Decrypted: " + decrypted + "</p>";
+                } catch (e) {
+                    outputDiv.innerHTML = "<p style='color:red;'>Decryption failed! Invalid encrypted text.</p>";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

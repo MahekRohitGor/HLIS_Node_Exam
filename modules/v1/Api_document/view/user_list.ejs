@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer List</title>
+    <link rel="stylesheet" type="text/css" href="<%= globals.base_url_without_api%>assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <style type="text/css">
+        
+        body
+        {
+            font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
+            padding: 10px;
+        }
+         .header-title{
+            padding: 5px;
+            border-bottom: solid 1px;
+            background-color: #9b9ba0 ;
+            color: #fff;
+
+         }
+
+        th
+        {
+            padding: 5px;
+            border-bottom: solid 1px;
+            background-color: #EBEFF2;
+        }
+
+        td
+        {
+            border-right:solid 1px;
+            padding-bottom: 10px;   
+            padding-left: 5px;
+            padding-top: 10px;  
+        }
+        table{
+            border-left: solid 2px black;
+        }
+        tr
+        {
+            transition-duration: .5s;
+            border-bottom: 1px solid #bababa;
+        }
+
+        tr:hover
+        {
+            opacity: 10;            
+            box-shadow: 0px 0px 5px black;          
+            background-color: #EBEFF2;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <table id="myTable" border="1" class="table"> 
+        <thead>
+        <tr style="background-color:rgb(37, 116, 75) ;color: #fff">
+            <td colspan="20" align="center"><p style="font-size: 20px;"><b>Customer List</b></p></td>
+        </tr> 
+        <tr> 
+            <th>Id</th>
+            <th>Profile Image</th>
+            <th>Social Id</th>
+            <th>User Type</th>
+            <th>Token</th>                
+            <th>Name</th>                    
+            <th>Email</th>            
+            <th>Password</th>
+            <th>Device_type</th>
+            <th>Device_token</th>
+            <th>Latitude</th>
+            <th>Longitude</th>    
+            <th>Signup Type S-> Simple, F-> Facebook, G-> Google</th>    
+            <th>OTP</th>                                
+            <th>OTP Verified</th>                                
+            <th>Last Login</th>
+            <th>Active Status</th>
+            <th>Insertdate</th>
+        </tr> 
+        </thead> 
+        <tbody> 
+            <% for (var i = 0; i < data.length; i++) { %>
+                <tr> 
+                    <td><%= data[i].user_id %></td>
+                    <td align="center"> <img src="<%= globals.s3Path.profile+data[i].profile_image%>" height='50px' width='50px'></td> 
+                    <td><%= data[i].social_id %></td> 
+                    <td><%= data[i].user_type %></td>
+                    <td><%= data[i].token %></td>    
+                    <td><%= data[i].firstname+" "+data[i].lastname %></td>                    
+                    <td><%= data[i].email %></td>                    
+                    <td><%= data[i].password %></td> 
+                    <td><%= data[i].device_type %></td>
+                    <td><%= data[i].device_token %></td>
+                    <td><%= data[i].latitude %></td>
+                    <td><%= data[i].longitude %></td>
+                    <td><%= data[i].signup_type %></td>
+                    <td><%= data[i].otp %></td>
+                    <td><%= data[i].is_otp_verified %></td>
+                    <td><%= data[i].login_time %></td>
+                    <td><%= data[i].is_active %></td>
+                    <td><%= data[i].insertdate %></td>
+                </tr> 
+            <% } %>
+        </tbody> 
+    </table> 
+</body>
+</html>
