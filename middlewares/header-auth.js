@@ -110,7 +110,7 @@ class headerAuth{
                 .add("fr", fr)
                 .add("guj", guj);
     
-            const byPassApi = ['forgotPassword', 'verifyOtp', 'resendOTP' , 'login', 'signup', 'resetPassword', 'api-docs', 'admin-login'];
+            const byPassApi = ['forgotPassword', 'verifyOtp', 'resendOTP' , 'login', 'signup', 'resetPassword', 'api-docs', 'complete-profile'];
             var api_dec = common.decryptPlain(headers["api-key"]).replace(/\0/g, '').replace(/[^\x00-\xFF]/g, "");
             if (api_dec === process.env.API_KEY) {
                 var headerObj = new headerAuth();
