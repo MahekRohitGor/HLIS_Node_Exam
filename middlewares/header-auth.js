@@ -133,11 +133,9 @@ class headerAuth{
                         // Determine whether request is for 'admin' or 'user'
                         if (req.requestedModule === 'admin') {
                             user = await headerObj.getRequestAdmin(token);
-                            console.log("Admin found:", user);
                             req.user_id = user.id;
                         } else {
                             user = await headerObj.getRequestOwner(token);
-                            console.log("User found:", user);
                             req.user_id = user.user_id;
                         }
 

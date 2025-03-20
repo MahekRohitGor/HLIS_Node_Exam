@@ -70,6 +70,94 @@ class User{
             common.response(res, _response_data);
         });
     }
+
+    async logout(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+        userModel.logout(user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async view_profile(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+        userModel.view_profile(user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async editProfile(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.edit_profile(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async home_page(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.home_page(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async list_stores(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.list_stores(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async product_listing(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.product_listing(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async product_detail(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.product_detail(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async post_review(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.post_review(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
+
+    async place_order(req,res){
+        const requested_data = req.body;
+        const request_data = JSON.parse(common.decryptPlain(requested_data));
+        const user_id = req.user_id;
+
+        userModel.place_order(request_data, user_id, (_response_data)=>{
+            common.response(res, _response_data);
+        });
+    }
 }
 
 

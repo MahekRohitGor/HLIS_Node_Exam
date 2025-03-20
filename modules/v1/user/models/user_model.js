@@ -454,9 +454,15 @@ class userModel{
                     }));
                 }
 
+                // user token
                 const token = common.generateToken(40);
                 const updateUser = `UPDATE tbl_user SET login_type = ?, token = ?, is_login = 1 where user_id = ?`;
                 await database.query(updateUser, [login_type, token, user[0].user_id]);
+
+                // device token
+                const device_token = common.generateToken(40);
+                const updateDeviceToken = `UPDATE tbl_device_info SET device_token = ? where user_id = ?`;
+                await database.query(updateDeviceToken, [device_token, user[0].user_id]);
 
                 return callback(common.encrypt({
                     code: response_code.SUCCESS,
@@ -535,9 +541,340 @@ class userModel{
         }
     }
 
-    async logout(request_data, user_id, callback){
+    async logout(user_id, callback){
         try{
+            const userQuery = `SELECT * FROM tbl_user where user_id = ? and is_login = 1`;
+            const [data] = await database.query(userQuery, [user_id]);
 
+            if(data.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('user_not_found')
+                }));
+            }
+
+            const clearTokenLogin = `UPDATE tbl_user SET token = null, is_login = 0 where user_id = ?`;
+            const clearDeviceToken = `UPDATE tbl_device_info SET device_token = null where user_id = ?`;
+            await database.query(clearTokenLogin, [user_id]);
+            await database.query(clearDeviceToken, [user_id]);
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('logout_success'), //new
+                data: user_id
+            }));
+
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }));
+        }
+    }
+
+    async view_profile(user_id, callback){
+        try{
+            const findUser = `
+            SELECT 
+                u.fname,
+                u.lname,
+                u.email_id,
+                CONCAT(c.country_code, '-', u.mobile_number) AS formatted_mobile,
+                u.address,
+                u.date_of_birth,
+                u.gender,
+                u.latitude,
+                u.longitude
+            FROM tbl_user u
+            LEFT JOIN tbl_country_code c ON u.code_id = c.code_id where user_id = ?;
+            `;
+            const [userData] = await database.query(findUser, [user_id]);
+
+            if(userData.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('user_not_found')
+                }));
+            }
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('user_profile'), // new
+                data: userData[0]
+            }));
+            
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }));
+        }
+    }
+
+    async edit_profile(request_data, user_id, callback) {
+        try {
+            const allowedFields = ["fname", "lname", "date_of_birth", "address", "gender", "profile_pic"];
+            let updateFields = [];
+            let values = [];
+    
+            for (let key of allowedFields) {
+                if (request_data[key] !== undefined) {
+                    if (key === "date_of_birth") {
+                        request_data[key] = new Date(request_data[key]).toISOString().split("T")[0];
+                    }
+                    updateFields.push(`${key} = ?`);
+                    values.push(request_data[key]);
+                }
+            }
+    
+            if (updateFields.length === 0) {
+                return callback(common.encrypt({
+                    code: response_code.NO_CHANGE,
+                    message: t("no_valid_fields_update"),
+                }));
+            }
+    
+            const updateQuery = `
+                UPDATE tbl_user 
+                SET ${updateFields.join(", ")}, updated_at = CURRENT_TIMESTAMP()
+                WHERE user_id = ? AND is_active = 1 AND is_deleted = 0 AND is_login = 1
+            `;
+            values.push(user_id);
+    
+            const [result] = await database.query(updateQuery, values);
+    
+            if (result.affectedRows === 0) {
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t("profile_update_no_changes"),
+                }));
+            }
+    
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t("profile_updated_success"),
+            }));
+    
+        } catch (error) {
+            console.error(error);
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: t("profile_update_error"),
+                error: error.message,
+            }));
+        }
+    }    
+    
+    async home_page(request_data, user_id, callback){
+        try{
+            const productListTopSaved = `SELECT p.product_name, p.price, p.weight, p.about from tbl_product p where product_id in (SELECT us.product_id FROM tbl_product p 
+            inner join tbl_product_image_rel pir on p.product_id = pir.product_id
+            inner join tbl_images i on i.image_id = pir.image_id 
+            inner join tbl_user_saved us on us.product_id = p.product_id group by us.product_id order by count(us.saved_id) desc) limit 5;`
+
+            const [data] = await database.query(productListTopSaved);
+
+            if(data.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('not_found'), //new
+                    data: data[0]
+                }));
+            }
+
+            const category_data = ["Vegetable Stores", "Grocery Stores"];
+
+            const combinedData = {
+                categories: category_data,
+                top_saved_products: data
+            };
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('data_found'), //new
+                data: combinedData
+            }));
+
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }))
+        }
+    }
+
+    async list_stores(request_data, user_id, callback){
+        try{
+            const veg_store = request_data.veg_store;
+            const grocery_store = request_data.grocery_store;
+
+            const findQuery = `SELECT * from tbl_user where user_id = ?`;
+            const [data] = await database.query(findQuery, [user_id]);
+
+            const latitude = data[0].latitude;
+            const longitude = data[0].longitude;
+            var findStore;
+
+            if((veg_store && grocery_store) || !(veg_store && grocery_store)){
+                findStore = `select s.store_name, s.cover_image_name, s.avg_rating, s.review_cnt, 
+                                s.store_category, concat(sa.area_name, " ",sa.flat_number," ", sa.block_number, " ", sa.road_name) as address,
+                                concat(ROUND(( 3959 * ACOS( COS( RADIANS(${latitude}) )  
+                                        * COS( RADIANS( sa.latitude ) ) 
+                                        * COS( RADIANS( sa.longitude ) - RADIANS(${longitude}) )  
+                                        + SIN( RADIANS(${latitude}) )  
+                                        * SIN( RADIANS( sa.latitude) ) ) ),0), " km") < 8200 as distance
+                                from tbl_stores s left join tbl_store_address_rel sa on s.store_id = sa.store_id
+                                where s.store_category = 'V,G';`
+
+            } else if(veg_store){
+                findStore = `select s.store_name, s.cover_image_name, s.avg_rating, s.review_cnt, 
+                                s.store_category, concat(sa.area_name, " ",sa.flat_number," ", sa.block_number, " ", sa.road_name) as address,
+                                concat(ROUND(( 3959 * ACOS( COS( RADIANS(${latitude}) )  
+                                        * COS( RADIANS( sa.latitude ) ) 
+                                        * COS( RADIANS( sa.longitude ) - RADIANS(${longitude}) )  
+                                        + SIN( RADIANS(${latitude}) )  
+                                        * SIN( RADIANS( sa.latitude) ) ) ),0), " km") < 8200 as distance
+                                from tbl_stores s left join tbl_store_address_rel sa on s.store_id = sa.store_id
+                                where s.store_category in ('V', 'V,G');`
+
+            } else if(grocery_store){
+                findStore = `select s.store_name, s.cover_image_name, s.avg_rating, s.review_cnt, 
+                                s.store_category, concat(sa.area_name, " ",sa.flat_number," ", sa.block_number, " ", sa.road_name) as address,
+                                concat(ROUND(( 3959 * ACOS( COS( RADIANS(${latitude}) )  
+                                        * COS( RADIANS( sa.latitude ) ) 
+                                        * COS( RADIANS( sa.longitude ) - RADIANS(${longitude}) )  
+                                        + SIN( RADIANS(${latitude}) )  
+                                        * SIN( RADIANS( sa.latitude) ) ) ),0), " km") < 8200 as distance
+                                from tbl_stores s left join tbl_store_address_rel sa on s.store_id = sa.store_id
+                                where s.store_category in ('G', 'V,G');`
+            } else{
+                return callback(common.encrypt({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('invalid_store_type') //new
+                }));
+            }
+
+            const [storeData] = await database.query(findStore);
+            if(storeData.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('not_found')
+                }));
+            }
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('data_found'),
+                data: storeData
+            }));
+
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }))
+
+        }
+    }
+
+    async product_listing(request_data, user_id, callback){
+        try{
+            const store_id = request_data.store_id;
+
+            const findItems = `SELECT i.image_name, p.product_name, p.price, p.weight as weight_in_kg, p.about from tbl_product p 
+                inner join tbl_product_image_rel pir on pir.product_id = p.product_id
+                inner join tbl_images i on i.image_id = pir.image_id
+                where p.product_id in 
+                (SELECT product_id from tbl_product_store_rel where store_id = ?); `
+
+            const [product_data] = await database.query(findItems, [store_id]);
+            if(product_data.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('data_not_found')
+                }));
+            }
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('data_found'),
+                data: product_data
+            }));
+
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }));
+        }
+    }
+
+    async product_detail(request_data, user_id, callback){
+        try{
+            const product_id = request_data.product_id;
+            const query = `select p.product_name, p.price, p.weight, 
+                            p.about, s.store_name, s.owner_name, s.owner_image, s.owner_abt 
+                            from tbl_product p 
+                            inner join tbl_product_store_rel psr on p.product_id = psr.product_id 
+                            inner join tbl_stores s on s.store_id = psr.store_id
+                            where p.product_id = ?;`;
+            const [data] = await database.query(query, [product_id]);
+
+            if(data.length === 0){
+                return callback(common.encrypt({
+                    code: response_code.NOT_FOUND,
+                    message: t('data_not_found')
+                }));
+            }
+
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: t('product_detail_success'),
+                data: data
+            }));
+
+        } catch(error){
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            }));
+        }
+    }
+
+    async post_review(request_data, user_id, callback){
+        try{
+            if(request_data.rating && request_data.reviews && request_data.apprating){
+                const data = {
+                    store_id: request_data.store_id,
+                    user_id: user_id
+                };
+
+                data.rating = request_data.rating;
+                data.reviews = request_data.reviews;
+
+                const insertQuery = `INSERT INTO tbl_ratings_review_stores SET ?`;
+                await database.query(insertQuery, [data]);
+
+                const app_rating = {
+                    user_id: user_id
+                }
+
+                app_rating.rating = request_data.apprating
+
+                const insertquery = `INSERT INTO tbl_rating_app SET ?`;
+                await database.query(insertquery, [app_rating]);
+
+                return callback(common.encrypt({
+                    code: response_code.SUCCESS,
+                    message: t('review_added_success')
+                }))
+
+            }
+
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: t('no_review_added')
+            }));
             
 
         } catch(error){
@@ -547,7 +884,107 @@ class userModel{
             }));
         }
     }
+
+    async place_order(request_data, user_id, callback) {
+        try {
+            const products = request_data.products;
     
+            console.log(products);
+            if (!products || products.length === 0) {
+                return callback(common.encrypt({
+                    code: response_code.OPERATION_FAILED,
+                    message: "No products provided to place order"
+                }));
+            }
+    
+            const order_number = common.generateToken(6);
+            const shipping_charges = 60;
+            const discount_amt = 20;
+    
+            const orderQuery = `INSERT into tbl_order_ (user_id, order_number, shipping_charges, discount_amt, status_, order_step) values (?,?,?,?,?,?)`;
+            const [data] = await database.query(orderQuery, [user_id, order_number, shipping_charges, discount_amt, 'pending', '1']);
+    
+            const order_id = data.insertId;
+            let total_qty = 0;
+    
+            for (const product of products) {
+                console.log(product);
+                const [priceData] = await database.query(`SELECT price from tbl_product where product_id = ? AND is_deleted = 0`, [product.product_id]);
+                console.log(priceData);
+                if (priceData.length > 0) {
+                    const price = priceData[0].price;
+                    console.log("price", price)
+                    const cart_data = {
+                        product_id: product.product_id,
+                        qty: product.qty || 1,
+                        user_id: user_id
+                    };
+
+                    await database.query(`INSERT INTO tbl_cart SET ?`, [cart_data]);
+                    
+                    const order_detail = {
+                        order_id: order_id,
+                        product_id: product.product_id,
+                        qty: product.qty || 1,
+                        unit_kg: product.weight || 1,
+                        price: price
+                    };
+                    await database.query(`INSERT INTO tbl_order_details SET ?`, [order_detail]);
+                    
+                    total_qty += (product.qty || 1);
+                    console.log("totalqty: ", total_qty);
+                }
+            }
+    
+            const delivery_address_data = {
+                flat_number: request_data.flat_number,
+                area_name: request_data.area_name,
+                block_number: request_data.block_number,
+                road_name: request_data.road_name,
+                type_: request_data.type_,
+                pincode: request_data.pincode,
+            };
+    
+            const addDeliveryAddress = `INSERT INTO tbl_delivery_address SET ?`;
+            const [deliveryAdd] = await database.query(addDeliveryAddress, [delivery_address_data]);
+    
+            const id = deliveryAdd.insertId;
+    
+            const relation_data = {
+                user_id: user_id,
+                delivery_id: id
+            };
+    
+            await database.query(`INSERT INTO tbl_user_address_relation SET ?`, [relation_data]);
+    
+            await database.query(`UPDATE tbl_order_ SET order_step = '2' where order_id = ?`, [order_id]);
+    
+            const now = new Date();
+            const deliveryEndDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); 
+            
+            const order_data = {
+                status_: 'confirmed',
+                delivery_date: deliveryEndDate,
+                total_qty: total_qty,
+                order_step: '3'
+            };
+    
+            await database.query(`UPDATE tbl_order_ SET ? where order_id = ?`, [order_data, order_id]);
+    
+            return callback(common.encrypt({
+                code: response_code.SUCCESS,
+                message: "ORDER PLACED SUCCESSFULLY",
+                data: { order_id: order_id }
+            }));
+    
+        } catch (error) {
+            return callback(common.encrypt({
+                code: response_code.OPERATION_FAILED,
+                message: "ERROR PLACING ORDER",
+                data: error.message
+            }));
+        }
+    }
 }
 
 module.exports = new userModel();
